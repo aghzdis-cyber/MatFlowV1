@@ -25,8 +25,8 @@ jobs:
           # key: ${{ secrets.HOSTINGER_SSH_KEY }}
           script: |
             # Allez dans le répertoire de votre projet, à adapter selon votre configuration Serveur VPS
-            # Exemple: cd /var/www/matflow-app
-            cd /chemin/vers/dossier/matflow-app
+            # par défaut sur Hostinger, on l'installera dans /root/matflow-app
+            cd /root/matflow-app
             
             # Récupérer les dernières modifications
             git fetch --all
