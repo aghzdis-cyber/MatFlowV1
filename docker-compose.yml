@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - matflow-network
+
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-matflow_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-matflow_password}
+      POSTGRES_DB: ${POSTGRES_DB:-matflow_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-matflow_user} -d ${POSTGRES_DB:-matflow_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - matflow-network
+
+volumes:
+  postgres_data:
+
+networks:
+  matflow-network:
+    driver: bridge

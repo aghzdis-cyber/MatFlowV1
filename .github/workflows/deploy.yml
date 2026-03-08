@@ -1,0 +1,47 @@
+name: Deploy MatFlow to Hostinger VPS
+
+on:
+  push:
+    branches:
+      - main # Changez en master ou autre selon votre branche par défaut
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy securely using SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTINGER_IP }}      # ex: 187.124.34.133
+          username: ${{ secrets.HOSTINGER_USER }} # ex: root ou ubuntu
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
+          # Au lieu du mot de passe, l'utilisation d'une clé SSH est recommandée:
+          # key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          script: |
+            # Allez dans le répertoire de votre projet, à adapter selon votre configuration Serveur VPS
+            # Exemple: cd /var/www/matflow-app
+            cd /chemin/vers/dossier/matflow-app
+            
+            # Récupérer les dernières modifications
+            git fetch --all
+            git reset --hard origin/main
+            git pull origin main
+            
+            # Recréer les conteneurs et redémarrer (force recreate rebuild)
+            docker compose down
+            docker compose up -d --build
+            
+            # Attendre que la base de données soit prête et appliquer les migrations
+            echo "Sleeping for 10 secondes pour laisser le temps à DB de s'initialiser..."
+            sleep 10
+            
+            # Appliquer les migrations Prisma dans le conteneur web
+            docker compose exec -T web npx prisma migrate deploy
+            
+            echo "Déploiement réussi sur Hostinger VPS!"

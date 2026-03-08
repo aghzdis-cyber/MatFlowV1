@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  role      Role     @default(TECHNICIAN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  TECHNICIAN
+  GUEST
+}
+
+model Location {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  zone        String?
+  equipments  Equipment[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Equipment {
+  id          String   @id @default(uuid())
+  sapMatricule String  // Matricule généré par SAP (1 matricule = n articles)
+  name        String
+  status      EquipmentStatus @default(ACTIVE)
+  locationId  String?
+  location    Location? @relation(fields: [locationId], references: [id])
+  rfidTag     String?
+  gpsLink     String?
+  receptionDate DateTime @default(now())
+  controls    Control[]
+  documents   Document[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum EquipmentStatus {
+  ACTIVE
+  IN_MAINTENANCE
+  REFORMED
+  SCRAPPED
+}
+
+model Control {
+  id                String   @id @default(uuid())
+  equipmentId       String
+  equipment         Equipment @relation(fields: [equipmentId], references: [id])
+  plannedDate       DateTime
+  executionDate     DateTime?
+  status            ControlStatus @default(PENDING)
+  synthesisReportId String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+enum ControlStatus {
+  PENDING
+  COMPLETED
+  OVERDUE
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  type        DocumentType
+  reference   String   @unique // Auto-incrémenté 'aaaa00001'
+  equipmentId String
+  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+  fileUrl     String?  // Lien vers le PDF ou l'Excel
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum DocumentType {
+  DRI
+  BTID
+}
