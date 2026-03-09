@@ -3,26 +3,23 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
-  role      Role     @default(OPERATOR)
+  role      String   @default("OPERATOR") // Changed from enum
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  emailVerified DateTime?
+  image         String?
   
   flowsCreated FlowEvent[] @relation("UserFlowEvents")
-}
-
-enum Role {
-  ADMIN
-  MANAGER
-  OPERATOR
-  VIEWER
+  accounts      Account[]
+  sessions      Session[]
 }
 
 model Site {
@@ -96,7 +93,7 @@ model Flow {
   destLocationId   String
   destLocation     Location @relation("DestLocation", fields: [destLocationId], references: [id])
   quantity         Float
-  status           FlowStatus @default(PENDING)
+  status           String   @default("PENDING") // Changed from enum
   
   events           FlowEvent[]
   
@@ -104,21 +101,50 @@ model Flow {
   updatedAt        DateTime @updatedAt
 }
 
-enum FlowStatus {
-  PENDING
-  IN_TRANSIT
-  COMPLETED
-  CANCELLED
-  ERROR
-}
-
 model FlowEvent {
   id        String   @id @default(uuid())
   flowId    String
   flow      Flow     @relation(fields: [flowId], references: [id])
-  status    FlowStatus
+  status    String   // Changed from enum
   userId    String
   user      User     @relation("UserFlowEvents", fields: [userId], references: [id])
   notes     String?
   timestamp DateTime @default(now())
+}
+
+// --- NextAuth Required Models ---
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
