@@ -11,16 +11,26 @@ model User {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
-  role      Role     @default(TECHNICIAN)
+  role      Role     @default(OPERATOR)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  flowsCreated FlowEvent[] @relation("UserFlowEvents")
 }
 
 enum Role {
   ADMIN
   MANAGER
-  TECHNICIAN
-  GUEST
+  OPERATOR
+  VIEWER
+}
+
+model Site {
+  id        String     @id @default(uuid())
+  name      String
+  locations Location[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model Location {
@@ -28,64 +38,87 @@ model Location {
   name        String
   description String?
   zone        String?
-  equipments  Equipment[]
+  siteId      String
+  site        Site     @relation(fields: [siteId], references: [id])
+  
+  inventories Inventory[]
+  sourceFlows Flow[]   @relation("SourceLocation")
+  destFlows   Flow[]   @relation("DestLocation")
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-model Equipment {
+model Category {
+  id        String     @id @default(uuid())
+  name      String
+  materials Material[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Material {
   id          String   @id @default(uuid())
-  sapMatricule String  // Matricule généré par SAP (1 matricule = n articles)
+  sku         String   @unique
   name        String
-  status      EquipmentStatus @default(ACTIVE)
-  locationId  String?
-  location    Location? @relation(fields: [locationId], references: [id])
-  rfidTag     String?
-  gpsLink     String?
-  receptionDate DateTime @default(now())
-  controls    Control[]
-  documents   Document[]
+  description String?
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  
+  inventories Inventory[]
+  flows       Flow[]
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-enum EquipmentStatus {
-  ACTIVE
-  IN_MAINTENANCE
-  REFORMED
-  SCRAPPED
-}
-
-model Control {
-  id                String   @id @default(uuid())
-  equipmentId       String
-  equipment         Equipment @relation(fields: [equipmentId], references: [id])
-  plannedDate       DateTime
-  executionDate     DateTime?
-  status            ControlStatus @default(PENDING)
-  synthesisReportId String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-}
-
-enum ControlStatus {
-  PENDING
-  COMPLETED
-  OVERDUE
-}
-
-model Document {
+model Inventory {
   id          String   @id @default(uuid())
-  type        DocumentType
-  reference   String   @unique // Auto-incrémenté 'aaaa00001'
-  equipmentId String
-  equipment   Equipment @relation(fields: [equipmentId], references: [id])
-  fileUrl     String?  // Lien vers le PDF ou l'Excel
+  materialId  String
+  material    Material @relation(fields: [materialId], references: [id])
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id])
+  quantity    Float    @default(0)
+  batchNumber String?
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@unique([materialId, locationId, batchNumber]) // Unicité par matière, lieu et lot
 }
 
-enum DocumentType {
-  DRI
-  BTID
+model Flow {
+  id               String   @id @default(uuid())
+  materialId       String
+  material         Material @relation(fields: [materialId], references: [id])
+  sourceLocationId String
+  sourceLocation   Location @relation("SourceLocation", fields: [sourceLocationId], references: [id])
+  destLocationId   String
+  destLocation     Location @relation("DestLocation", fields: [destLocationId], references: [id])
+  quantity         Float
+  status           FlowStatus @default(PENDING)
+  
+  events           FlowEvent[]
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+enum FlowStatus {
+  PENDING
+  IN_TRANSIT
+  COMPLETED
+  CANCELLED
+  ERROR
+}
+
+model FlowEvent {
+  id        String   @id @default(uuid())
+  flowId    String
+  flow      Flow     @relation(fields: [flowId], references: [id])
+  status    FlowStatus
+  userId    String
+  user      User     @relation("UserFlowEvents", fields: [userId], references: [id])
+  notes     String?
+  timestamp DateTime @default(now())
 }
