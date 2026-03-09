@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "@/components/layout/Sidebar";
 import { Navbar } from "@/components/layout/Navbar";
 import { NextAuthProvider } from "@/components/providers/NextAuthProvider";
 
-// We use Inter font as it matches the modern requested aesthetic
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MatFlow - Gestion de Contrôle Matériel",
+  title: "MatFlow - Tableau de Bord",
   description: "Plateforme centralisée de gestion et de contrôle matériel.",
 };
 
@@ -19,22 +17,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
-      <body className={`${inter.className} antialiased bg-[#0e172a]`}>
+    <html lang="fr" className="dark">
+      <body className={`${inter.className} antialiased min-h-screen bg-[#1e2254] m-0 p-0`}>
         <NextAuthProvider>
-          {/* Main wrapper: Dark blue background matching the sidebar theme */}
-          <div className="flex h-screen w-full overflow-hidden p-2 gap-2">
-            {/* Sidebar Area */}
-            <Sidebar />
-
-            {/* Main Content Area - White curved container */}
-            <div className="flex flex-col flex-1 bg-white rounded-[2rem] overflow-hidden shadow-2xl mr-2 relative">
-              <Navbar />
-
-              <main className="flex-1 overflow-y-auto bg-slate-50 relative p-8">
-                {children}
-              </main>
-            </div>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-1 w-full max-w-[1400px] mx-auto p-8 lg:p-12">
+              {children}
+            </main>
           </div>
         </NextAuthProvider>
       </body>
