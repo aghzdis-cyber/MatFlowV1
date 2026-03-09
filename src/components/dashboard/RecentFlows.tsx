@@ -1,7 +1,12 @@
 import { ArrowRight, Package, Truck, CheckCircle, Clock } from "lucide-react";
 import useSWR from "swr";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = async (url: string) => {
+    const res = await fetch(url);
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Erreur API');
+    return json;
+};
 
 const statusConfig: Record<string, any> = {
     PENDING: {
@@ -30,8 +35,8 @@ export function RecentFlows() {
         return <div className="p-4 text-center text-slate-500">Chargement des flux...</div>;
     }
 
-    if (error || !flows) {
-        return <div className="p-4 text-center text-red-500">Erreur de chargement des flux.</div>;
+    if (error || !flows || !Array.isArray(flows)) {
+        return <div className="p-4 text-center text-red-500 text-sm font-medium bg-red-50 rounded-lg">Impossible de charger les données depuis la base. Vérifiez la connexion DB sur le serveur.</div>;
     }
 
     // N'afficher que les 5 flux les plus récents

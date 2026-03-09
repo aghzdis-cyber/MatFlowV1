@@ -11,7 +11,12 @@ import { RecentFlows } from "@/components/dashboard/RecentFlows";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Skeleton } from "@/components/ui/Skeleton";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Erreur API');
+  return json;
+};
 
 const KpiCard = ({ title, value, trend, isUp, icon: Icon, colorClass, isLoading }: any) => (
   <div className="bg-white p-6 rounded-[1.5rem] shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-md transition-shadow">
