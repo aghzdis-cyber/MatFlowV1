@@ -8,18 +8,18 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  role      String   @default("OPERATOR") // Changed from enum
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  role          String    @default("OPERATOR") // Changed from enum
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   emailVerified DateTime?
   image         String?
-  
+
   flowsCreated FlowEvent[] @relation("UserFlowEvents")
-  accounts      Account[]
-  sessions      Session[]
+  accounts     Account[]
+  sessions     Session[]
 }
 
 model Site {
@@ -31,19 +31,20 @@ model Site {
 }
 
 model Location {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   description String?
   zone        String?
   siteId      String
-  site        Site     @relation(fields: [siteId], references: [id])
-  
+  site        Site    @relation(fields: [siteId], references: [id])
+
   inventories Inventory[]
-  sourceFlows Flow[]   @relation("SourceLocation")
-  destFlows   Flow[]   @relation("DestLocation")
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  sourceFlows Flow[]      @relation("SourceLocation")
+  destFlows   Flow[]      @relation("DestLocation")
+  receptions  Reception[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Category {
@@ -61,12 +62,13 @@ model Material {
   description String?
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
-  
-  inventories Inventory[]
-  flows       Flow[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  inventories    Inventory[]
+  flows          Flow[]
+  receptionItems ReceptionItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Inventory {
@@ -77,9 +79,9 @@ model Inventory {
   location    Location @relation(fields: [locationId], references: [id])
   quantity    Float    @default(0)
   batchNumber String?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([materialId, locationId, batchNumber]) // Unicité par matière, lieu et lot
 }
@@ -94,39 +96,103 @@ model Flow {
   destLocation     Location @relation("DestLocation", fields: [destLocationId], references: [id])
   quantity         Float
   status           String   @default("PENDING") // Changed from enum
-  
-  events           FlowEvent[]
-  
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+
+  events FlowEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model FlowEvent {
   id        String   @id @default(uuid())
   flowId    String
   flow      Flow     @relation(fields: [flowId], references: [id])
-  status    String   // Changed from enum
+  status    String // Changed from enum
   userId    String
   user      User     @relation("UserFlowEvents", fields: [userId], references: [id])
   notes     String?
   timestamp DateTime @default(now())
 }
 
+model Supplier {
+  id      String  @id @default(uuid())
+  name    String
+  contact String?
+  email   String?
+  phone   String?
+  address String?
+
+  purchaseOrders PurchaseOrder[]
+  receptions     Reception[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PurchaseOrder {
+  id          String   @id @default(uuid())
+  orderNumber String   @unique
+  supplierId  String
+  supplier    Supplier @relation(fields: [supplierId], references: [id])
+  status      String   @default("PENDING")
+  orderDate   DateTime @default(now())
+
+  receptions Reception[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Reception {
+  id              String         @id @default(uuid())
+  receptionNumber String         @unique
+  supplierId      String
+  supplier        Supplier       @relation(fields: [supplierId], references: [id])
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  locationId      String
+  location        Location       @relation(fields: [locationId], references: [id])
+  deliveryDate    DateTime       @default(now())
+  driverName      String?
+  truckNumber     String?
+  status          String         @default("PENDING")
+  notes           String?
+
+  items ReceptionItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ReceptionItem {
+  id          String    @id @default(uuid())
+  receptionId String
+  reception   Reception @relation(fields: [receptionId], references: [id], onDelete: Cascade)
+  materialId  String
+  material    Material  @relation(fields: [materialId], references: [id])
+  quantity    Float
+  unitPrice   Float?
+  batchNumber String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // --- NextAuth Required Models ---
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
