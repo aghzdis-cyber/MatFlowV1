@@ -66,6 +66,7 @@ model Material {
   inventories    Inventory[]
   flows          Flow[]
   receptionItems ReceptionItem[]
+  inspectionItems InspectionItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -159,6 +160,7 @@ model Reception {
   notes           String?
 
   items ReceptionItem[]
+  inspections Inspection[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -213,4 +215,34 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// --- Module Contrôles ---
+model Inspection {
+  id            String   @id @default(uuid())
+  receptionId   String
+  reception     Reception @relation(fields: [receptionId], references: [id], onDelete: Cascade)
+  inspectorName String
+  date          DateTime @default(now())
+  globalStatus  String   @default("PENDING") // PENDING, PASS, FAIL
+  comments      String?
+
+  items         InspectionItem[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model InspectionItem {
+  id              String   @id @default(uuid())
+  inspectionId    String
+  inspection      Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  materialId      String
+  material        Material @relation(fields: [materialId], references: [id])
+  quantityInspected Float
+  quantityRejected  Float  @default(0)
+  defects         String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
