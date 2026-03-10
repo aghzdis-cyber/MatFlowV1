@@ -18,9 +18,16 @@ jobs:
       - name: Deploy securely using SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.HOSTINGER_IP }}      # ex: 187.124.34.133
+          host: "187.124.34.133"      # ex: 187.124.34.133
           username: "root"
-          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          key: |
+            -----BEGIN OPENSSH PRIVATE KEY-----
+            b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+            QyNTUxOQAAACCq3KZ3EWVWF2pkwGSPgSGTxDwO3mP7NRjTNTrC/AJ71QAAAJg59rF6Ofax
+            egAAAAtzc2gtZWQyNTUxOQAAACCq3KZ3EWVWF2pkwGSPgSGTxDwO3mP7NRjTNTrC/AJ71Q
+            AAAEAp2GOv0VN/UoEtliaKWB6qJgyXZERRkaxjt0LA+6bEl6rcpncRZVYXamTAZI+BIZPE
+            PA7eY/s1GNM1OsL8AnvVAAAAEWFnaHpkaXNAZ21haWwuY29tAQIDBA==
+            -----END OPENSSH PRIVATE KEY-----
           script: |
             # Allez dans le répertoire de votre projet, à adapter selon votre configuration Serveur VPS
             # par défaut sur Hostinger, on l'installera dans /root/matflow-app
