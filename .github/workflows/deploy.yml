@@ -19,7 +19,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOSTINGER_IP }}      # ex: 187.124.34.133
-          username: "root" # Utilisateur VPS par défaut sur Hostinger
+          username: "aghzdis@gmail.com" # Utilisateur demandé par l'utilisateur
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
           script: |
             # Allez dans le répertoire de votre projet, à adapter selon votre configuration Serveur VPS
