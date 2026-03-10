@@ -19,10 +19,8 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOSTINGER_IP }}      # ex: 187.124.34.133
-          username: ${{ secrets.HOSTINGER_USER }} # ex: root ou ubuntu
-          password: ${{ secrets.HOSTINGER_PASSWORD }}
-          # Au lieu du mot de passe, l'utilisation d'une clé SSH est recommandée:
-          # key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          username: "aghzdis@gmail.com" # ex: root ou ubuntu
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
           script: |
             # Allez dans le répertoire de votre projet, à adapter selon votre configuration Serveur VPS
             # par défaut sur Hostinger, on l'installera dans /root/matflow-app
