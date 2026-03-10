@@ -42,6 +42,7 @@ model Location {
   sourceFlows Flow[]      @relation("SourceLocation")
   destFlows   Flow[]      @relation("DestLocation")
   receptions  Reception[]
+  scrapItems  ScrapItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -67,6 +68,7 @@ model Material {
   flows          Flow[]
   receptionItems ReceptionItem[]
   inspectionItems InspectionItem[]
+  scrapItems     ScrapItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -268,6 +270,48 @@ model ReformItem {
   reformRequest   ReformRequest @relation(fields: [reformRequestId], references: [id], onDelete: Cascade)
   inventoryId     String
   inventory       Inventory @relation(fields: [inventoryId], references: [id])
+  quantity        Float
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// --- Module Ferraillage ---
+model ScrapProvider {
+  id          String   @id @default(uuid())
+  name        String
+  contact     String?
+
+  batches     ScrapBatch[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ScrapBatch {
+  id                String   @id @default(uuid())
+  providerId        String
+  provider          ScrapProvider @relation(fields: [providerId], references: [id])
+  date              DateTime @default(now())
+  certificateNumber String?
+  totalWeight       Float?   @default(0)
+  notes             String?
+  status            String   @default("PENDING") // PENDING, COMPLETED
+
+  items             ScrapItem[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model ScrapItem {
+  id              String   @id @default(uuid())
+  scrapBatchId    String
+  scrapBatch      ScrapBatch @relation(fields: [scrapBatchId], references: [id], onDelete: Cascade)
+  materialId      String
+  material        Material @relation(fields: [materialId], references: [id])
+  locationId      String
+  location        Location @relation(fields: [locationId], references: [id])
   quantity        Float
 
   createdAt       DateTime @default(now())
