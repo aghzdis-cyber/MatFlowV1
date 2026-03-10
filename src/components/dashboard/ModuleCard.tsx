@@ -1,4 +1,5 @@
 import { LucideIcon } from "lucide-react";
+import Link from "next/link";
 
 interface ModuleCardProps {
     title: string;
@@ -6,10 +7,11 @@ interface ModuleCardProps {
     metricText: string;
     progress: number;
     icon: LucideIcon;
+    href?: string;
 }
 
-export function ModuleCard({ title, description, metricText, progress, icon: Icon }: ModuleCardProps) {
-    return (
+export function ModuleCard({ title, description, metricText, progress, icon: Icon, href }: ModuleCardProps) {
+    const CardContent = (
         <div className="bg-[#2a2e6f] rounded-xl p-6 shadow-sm border border-[#3e438c] flex flex-col justify-between hover:border-[#5257a6] transition-colors cursor-pointer group h-full">
             <div>
                 <div className="flex justify-between items-start mb-4">
@@ -36,4 +38,10 @@ export function ModuleCard({ title, description, metricText, progress, icon: Ico
             </div>
         </div>
     );
+
+    if (href) {
+        return <Link href={href} className="block h-full">{CardContent}</Link>;
+    }
+
+    return CardContent;
 }

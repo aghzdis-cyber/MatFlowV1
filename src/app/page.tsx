@@ -24,6 +24,7 @@ export default function Dashboard() {
           metricText="3 en attente"
           progress={30}
           icon={PackageSearch}
+          href="/reception"
         />
         <ModuleCard
           title="Capitalisation"
@@ -31,6 +32,7 @@ export default function Dashboard() {
           metricText="5 nouveaux / mois"
           progress={0}
           icon={Archive}
+          href="/capitalisation"
         />
         <ModuleCard
           title="Inventaire"
@@ -38,6 +40,7 @@ export default function Dashboard() {
           metricText="75% effectué"
           progress={75}
           icon={ScanSearch}
+          href="/inventaires"
         />
         <ModuleCard
           title="Contrôle Réglementaire"
@@ -45,6 +48,7 @@ export default function Dashboard() {
           metricText="2 contrôles à venir"
           progress={20}
           icon={ShieldCheck}
+          href="/controles"
         />
         <ModuleCard
           title="Réforme"
@@ -52,6 +56,7 @@ export default function Dashboard() {
           metricText="10 équipements réformés"
           progress={0}
           icon={XSquare}
+          href="/reforme"
         />
         <ModuleCard
           title="Ferraillage"
@@ -59,6 +64,7 @@ export default function Dashboard() {
           metricText="Prêt pour collecte"
           progress={0}
           icon={Recycle}
+          href="/ferraillage"
         />
       </div>
     </div>
